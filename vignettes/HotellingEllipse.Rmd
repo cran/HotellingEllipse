@@ -1,0 +1,150 @@
+---
+title: "HotellingEllipse"
+author: "Christian L. Goueguel"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{HotellingEllipse}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+<style>
+div.reviewer pre { background-color:#e3dece; }
+div.output pre { background-color:#FFFFFF; }
+</style>
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.retina = 2
+)
+```
+
+The HotellingEllipse package is designed to help draw the Hotelling ellipse on the PCA or PLS score scatterplot. HotellingEllipse computes the Hotelling’s T$^2$ value, the semi-minor axis (denoted **a**), the semi-major axis (denoted **b**) along with the *x*-*y* coordinates for drawing a confidence ellipse based on Hotelling’s T$^2$. Specifically, there are two functions available:
+
+  * `ellipseParam()`, is used to calculate the Hotelling’s T$^2$ and the semi-axes of an ellipse at 99% and 95% confidence intervals.
+  
+  * `ellipseCoord()`, is used to get the *x* and *y* coordinates of a confidence ellipse at user-defined confidence interval. The confidence interval is set at 95% by default. 
+
+
+```{r message=FALSE, warning=FALSE, include=FALSE}
+library(dplyr)
+library(FactoMineR)
+library(tibble)
+library(purrr)
+library(ggplot2)
+library(ggforce)
+```
+
+# Data
+
+```{r message=FALSE, warning=FALSE}
+library(HotellingEllipse)
+```
+
+```{r}
+data("specData")
+```
+
+In this example, we use `FactoMineR::PCA()` to perform the Principal Component Analysis (PCA) from a LIBS spectral dataset `specData` and extract the PCA scores as a data frame `tibble::as_tibble()`. 
+
+```{r}
+set.seed(123)
+pca_mod <- specData %>%
+  select(where(is.numeric)) %>%
+  PCA(scale.unit = FALSE, graph = FALSE)
+```
+
+```{r}
+pca_scores <- pca_mod %>%
+  pluck("ind", "coord") %>%
+  as_tibble()
+```
+
+```{r}
+pca_scores
+```
+
+# Hotelling ellipse: semi-axes 
+
+To add a confidence ellipse, we use the function `ellipseParam()`. We want to compute the length of the ellipse semi-axes for bivariate data within the PC1-PC2 subspace. To do this, we set the number of components, k, to 2, while the pcx and pcy inputs are respectively set to 1 and 2.
+
+```{r}
+res <- ellipseParam(data = pca_scores, k = 2, pcx = 1, pcy = 2)
+```
+
+```{r}
+str(res)
+```
+
+We can extract parameters for further use:
+
+  * Semi-axes of the ellipse at 99% confidence level.
+
+```{r}
+a1 <- pluck(res, "Ellipse", "a.99pct")
+b1 <- pluck(res, "Ellipse", "b.99pct")
+```
+
+  * Semi-axes of the ellipse at 95% confidence level.
+
+```{r}
+a2 <- pluck(res, "Ellipse", "a.95pct")
+b2 <- pluck(res, "Ellipse", "b.95pct")
+```
+
+  * Hotelling’s T$^2$ value.
+
+```{r}
+Tsq <- pluck(res, "Tsquare", "value")
+```
+
+```{r eval=FALSE, fig.align='center', fig.height=5, fig.width=7, include=FALSE}
+pca_scores %>%
+  ggplot(aes(x = Dim.1, y = Dim.2)) +
+  geom_point(aes(fill = Tsq), shape = 21, size = 3, color = "black") +
+  scale_fill_viridis_c(option = "viridis") +
+  geom_ellipse(aes(x0 = 0, y0 = 0, a = a1, b = b1, angle = 0), size = .5, linetype = "dotted") + 
+  geom_ellipse(aes(x0 = 0, y0 = 0, a = a2, b = b2, angle = 0), size = .5, linetype = "dashed") +
+  geom_hline(yintercept = 0, linetype = "solid", color = "black", size = .2) +
+  geom_vline(xintercept = 0, linetype = "solid", color = "black", size = .2) +
+  labs(
+    title = "Scatterplot of PCA scores", 
+    subtitle = "PC1 vs. PC2", 
+    x = "PC1", 
+    y = "PC2", 
+    fill = "T2 stats", 
+    caption = "Figure 1"
+    ) +
+  theme_bw()
+```
+
+# Hotelling ellipse: x and y coordinates
+
+Another way to add Hotelling ellipse is to use the function `ellipseCoord()`. This function provides the *x* and *y* coordinates of the confidence ellipse at user-defined confidence interval. The confidence interval `confi.limit` is set at 95% by default. Below, the *x*-*y* coordinates are estimated based on data projected into the PC1-PC3 subspace.
+
+```{r}
+xy_coord <- ellipseCoord(data = pca_scores, pcx = 1, pcy = 3, conf.limit = 0.95, pts = 500)
+```
+
+```{r}
+str(xy_coord)
+```
+
+```{r eval=FALSE, fig.align='center', fig.height=5, fig.width=7, include=FALSE}
+pca_scores %>%
+  ggplot() +
+  geom_point(aes(x = Dim.1, y = Dim.3), shape = 21, size = 4, fill = "gold", color = "black") +
+  geom_ellipse(data = xy_coord, aes(x0 = x, y0 = y, a = 1, b = 1, angle = 0), size = .5, linetype = "dashed") +
+  geom_hline(yintercept = 0, linetype = "solid", color = "black", size = .2) +
+  geom_vline(xintercept = 0, linetype = "solid", color = "black", size = .2) +
+  labs(
+    title = "Scatterplot of PCA scores", 
+    subtitle = "PC1 vs. PC3", 
+    x = "PC1", 
+    y = "PC3", 
+    caption = "Figure 2"
+    ) +
+  theme_bw()
+```
