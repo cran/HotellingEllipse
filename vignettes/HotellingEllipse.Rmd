@@ -4,14 +4,9 @@ author: "Christian L. Goueguel"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{HotellingEllipse}
-  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEngine{knitr::knitr}
   %\VignetteEncoding{UTF-8}
 ---
-
-<style>
-div.reviewer pre { background-color:#e3dece; }
-div.output pre { background-color:#FFFFFF; }
-</style>
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
@@ -21,7 +16,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-The HotellingEllipse package is designed to help draw the Hotelling ellipse on the PCA or PLS score scatterplot. HotellingEllipse computes the Hotelling’s T$^2$ value, the semi-minor axis (denoted **a**), the semi-major axis (denoted **b**) along with the *x*-*y* coordinates for drawing a confidence ellipse based on Hotelling’s T$^2$. Specifically, there are two functions available:
+This package is designed to help draw the Hotelling ellipse on the PCA or PLS score scatterplot. `HotreellingEllipse` computes the Hotelling’s T$^2$ value, the semi-minor axis, the semi-major axis along with the *x*-*y* coordinate points for drawing a confidence ellipse based on Hotelling’s T$^2$. Specifically, there are two functions available:
 
   * `ellipseParam()`, is used to calculate the Hotelling’s T$^2$ and the semi-axes of an ellipse at 99% and 95% confidence intervals.
   
@@ -46,6 +41,8 @@ library(HotellingEllipse)
 ```{r}
 data("specData")
 ```
+
+# Principal component analysis
 
 In this example, we use `FactoMineR::PCA()` to perform the Principal Component Analysis (PCA) from a LIBS spectral dataset `specData` and extract the PCA scores as a data frame `tibble::as_tibble()`. 
 

@@ -1,20 +1,14 @@
 #' @title Coordinate Points Of Hotelling Ellipse
-#'
-#' @description Get the x and y coordinates of Hotelling ellipse.
-#'
-#' @param data a data frame or tibble of PCA/PLS scores
-#' @param pcx an integer specifying which component is on the x-axis (by default 1)
-#' @param pcy an integer specifying which component is on the y-axis (by default 2)
-#' @param conf.limit an integer specifying the confidence level (by default 0.95)
-#' @param pts an integer indicating the number of points of Hotelling ellipse (by default 200)
-#'
-#' @return a data frame with x and y coordinates
-#'
+#' @description Get the *x* and *y* coordinates of Hotelling ellipse.
+#' @param data Data frame or tibble of PCA, PLS, and ICA scores, or from other feature projection methods.
+#' @param pcx Integer specifying which component is on the x-axis (by default 1).
+#' @param pcy Integer specifying which component is on the y-axis (by default 2).
+#' @param conf.limit Number between 0 and 1 specifying the confidence level (by default 0.95).
+#' @param pts Integer indicating the number of points for drawing the Hotelling ellipse (by default 200).
+#' @return Data frame containing the *x* and *y* coordinate points of the Hotelling ellipse.
 #' @export ellipseCoord
-#'
 #' @author Christian L. Goueguel,
 #' christian.goueguel@gmail.com
-#'
 #' @examples
 #' ## Principal components analysis (PCA)
 #' library(dplyr)
@@ -37,7 +31,7 @@ ellipseCoord <- function(data, pcx = 1, pcy = 2, conf.limit = 0.95, pts = 200) {
   stopifnot(length(data) != 0)
   stopifnot(pcx != pcy)
 
-  if (is.data.frame(data) == FALSE | tibble::is_tibble(data) == FALSE) {
+  if (is.data.frame(data) == FALSE & tibble::is_tibble(data) == FALSE) {
     stop("Data must be of class data.frame, tbl_df, or tbl")
   }
 
