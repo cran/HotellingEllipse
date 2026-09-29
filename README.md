@@ -1,5 +1,6 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
+
 <!-- badges: start -->
 
 # HotellingEllipse <img src="man/figures/logo.png" align="right" height="159"/>
@@ -57,19 +58,19 @@ This section provides a comprehensive step-by-step tutorial on how to
 use the `HotellingEllipse` package. This guide will walk you through the
 entire process, from data preparation to final visualization.
 
--   using `FactoMineR::PCA()` we first perform Principal Component
-    Analysis (PCA) from a LIBS spectral dataset `data("specData")` and
-    extract the PCA scores.
+- using `FactoMineR::PCA()` we first perform Principal Component
+  Analysis (PCA) from a LIBS spectral dataset `data("specData")` and
+  extract the PCA scores.
 
--   with `ellipseParam()` we get the Hotelling’s T-squared statistic
-    along with the values of the semi-minor and semi-major axes.
-    Whereas, `ellipseCoord()` provides the coordinates for drawing the
-    Hotelling ellipse at user-defined confidence interval.
+- with `ellipseParam()` we get the Hotelling’s T-squared statistic along
+  with the values of the semi-minor and semi-major axes. Whereas,
+  `ellipseCoord()` provides the coordinates for drawing the Hotelling
+  ellipse at user-defined confidence interval.
 
--   using `ggplot2::ggplot()` and `ggforce::geom_ellipse()` we plot the
-    scatterplot of PCA scores as well as the corresponding Hotelling’s
-    T-squared ellipse which represents the confidence region for the
-    joint variables at 99% and 95% confidence intervals.
+- using `ggplot2::ggplot()` and `ggforce::geom_ellipse()` we plot the
+  scatterplot of PCA scores as well as the corresponding Hotelling’s
+  T-squared ellipse which represents the confidence region for the joint
+  variables at 99% and 95% confidence intervals.
 
 **Step 1.** Load the package.
 
@@ -129,32 +130,33 @@ res_2PCs <- ellipseParam(pca_scores, k = 2, pcx = 1, pcy = 2)
 str(res_2PCs)
 #> List of 5
 #>  $ Tsquare     : tibble [100 × 1] (S3: tbl_df/tbl/data.frame)
-#>   ..$ value: num [1:100] 13.0984 0.0536 0.0428 0.5969 1.0649 ...
+#>   ..$ value: num [1:100] 26.4641 0.1082 0.0864 1.2059 2.1516 ...
 #>  $ cutoff.99pct: num 9.76
 #>  $ cutoff.95pct: num 6.24
-#>  $ nb.comp     : num 2
-#>  $ Ellipse     : tibble [1 × 4] (S3: tbl_df/tbl/data.frame)
+#>  $ nb.comp     : int 2
+#>  $ Ellipse     : tibble [1 × 5] (S3: tbl_df/tbl/data.frame)
 #>   ..$ a.99pct: num 19369
 #>   ..$ b.99pct: num 10800
 #>   ..$ a.95pct: num 15492
 #>   ..$ b.95pct: num 8639
+#>   ..$ angle  : num 0
 ```
 
--   Semi-axes of the ellipse at 99% confidence level.
+- Semi-axes of the ellipse at 99% confidence level.
 
 ``` r
 a1 <- pluck(res_2PCs, "Ellipse", "a.99pct")
 b1 <- pluck(res_2PCs, "Ellipse", "b.99pct")
 ```
 
--   Semi-axes of the ellipse at 95% confidence level.
+- Semi-axes of the ellipse at 95% confidence level.
 
 ``` r
 a2 <- pluck(res_2PCs, "Ellipse", "a.95pct")
 b2 <- pluck(res_2PCs, "Ellipse", "b.95pct")
 ```
 
--   Hotelling’s T-squared.
+- Hotelling’s T-squared.
 
 ``` r
 T2 <- pluck(res_2PCs, "Tsquare", "value")
@@ -177,12 +179,18 @@ coord_2PCs_90 <- ellipseCoord(pca_scores, pcx = 1, pcy = 3, conf.limit = 0.90, p
 str(coord_2PCs_99)
 #> tibble [500 × 2] (S3: tbl_df/tbl/data.frame)
 #>  $ x: num [1:500] 19369 19367 19363 19355 19344 ...
-#>  $ y: num [1:500] -5.30e-13 1.06e+02 2.12e+02 3.18e+02 4.24e+02 ...
+#>  $ y: num [1:500] -2.37e-12 1.06e+02 2.12e+02 3.18e+02 4.24e+02 ...
 ```
 
 **Step 6.** Plot PC1 *vs.* PC2 scatterplot, with the two corresponding
 Hotelling ellipse. Points inside the two elliptical regions are within
 the 99% and 95% confidence intervals for the Hotelling’s T-squared.
+
+``` r
+t1 <- round(as.numeric(pca_mod$eig[1,2]), 2)
+t2 <- round(as.numeric(pca_mod$eig[2,2]), 2)
+t3 <- round(as.numeric(pca_mod$eig[3,2]), 2)
+```
 
 ``` r
 pca_scores %>%
@@ -193,11 +201,19 @@ pca_scores %>%
   scale_fill_viridis_c(option = "viridis") +
   geom_hline(yintercept = 0, linetype = "solid", color = "black", linewidth = .2) +
   geom_vline(xintercept = 0, linetype = "solid", color = "black", linewidth = .2) +
-  labs(title = "Scatterplot of PCA scores", subtitle = "PC1 vs. PC2", x = "PC1", y = "PC2", fill = "T2", caption = "Figure 1: Hotelling’s T2 ellipse obtained\n using the ellipseParam function") +
-  theme_grey()
+  labs(title = "Scatterplot of PCA scores", subtitle = "PC1 vs. PC2", x = glue("PC1 [{t1}%]"), y = glue("PC2 [{t2}%]"), fill = "T2", caption = "Figure 1: Hotelling’s T2 ellipse obtained\n using the ellipseParam function") +
+  theme_grey() +
+  theme(
+    aspect.ratio = .7,
+    panel.grid = element_blank(),
+    panel.background = element_rect(
+    colour = "black",
+    linewidth = .3
+    )
+  )
 ```
 
-<img src="man/figures/README-unnamed-chunk-15-1.png" width="90%" height="90%" />
+<img src="man/figures/README-unnamed-chunk-16-1.png" alt="" width="90%" height="90%" />
 
 Or in the PC1-PC3 subspace at the confidence intervals set at 99, 95 and
 90%.
@@ -211,11 +227,19 @@ ggplot() +
   scale_fill_viridis_c(option = "viridis") +
   geom_hline(yintercept = 0, linetype = "solid", color = "black", linewidth = .2) +
   geom_vline(xintercept = 0, linetype = "solid", color = "black", linewidth = .2) +
-  labs(title = "Scatterplot of PCA scores", subtitle = "PC1 vs. PC3", x = "PC1", y = "PC3", fill = "T2", caption = "Figure 2: Hotelling’s T2 ellipse obtained\n using the ellipseCoord function") +
-  theme_grey()
+  labs(title = "Scatterplot of PCA scores", subtitle = "PC1 vs. PC3", x = glue("PC1 [{t1}%]"), y = glue("PC3 [{t3}%]"), fill = "T2", caption = "Figure 2: Hotelling’s T2 ellipse obtained\n using the ellipseCoord function") +
+  theme_grey() +
+   theme(
+    aspect.ratio = .7,
+    panel.grid = element_blank(),
+    panel.background = element_rect(
+    colour = "black",
+    linewidth = .3
+    )
+  )
 ```
 
-<img src="man/figures/README-unnamed-chunk-16-1.png" width="90%" height="90%" />
+<img src="man/figures/README-unnamed-chunk-17-1.png" alt="" width="90%" height="90%" />
 
 **Note 1: Hotelling’s T-squared Ellipsoid - Visualizing Multivariate
 Data in 3D Space.**
@@ -236,8 +260,8 @@ df_ellipsoid <- ellipseCoord(pca_scores, pcx = 1, pcy = 2, pcz = 3, pts = 50)
 ``` r
 str(df_ellipsoid)
 #> tibble [2,500 × 3] (S3: tbl_df/tbl/data.frame)
-#>  $ x: num [1:2500] -2.32e-13 -2.32e-13 -2.32e-13 -2.32e-13 -2.32e-13 ...
-#>  $ y: num [1:2500] 6.93e-13 6.93e-13 6.93e-13 6.93e-13 6.93e-13 ...
+#>  $ x: num [1:2500] 1.66e-11 1.66e-11 1.66e-11 1.66e-11 1.66e-11 ...
+#>  $ y: num [1:2500] 1.98e-11 1.98e-11 1.98e-11 1.98e-11 1.98e-11 ...
 #>  $ z: num [1:2500] 7745 7745 7745 7745 7745 ...
 ```
 
@@ -285,7 +309,7 @@ rgl::bgplot3d({
 rgl::view3d(theta = 30, phi = 25, zoom = .8)
 ```
 
-<img src="man/figures/README-unnamed-chunk-21-1-rgl.png" width="90%" height="90%" />
+<img src="man/figures/README-unnamed-chunk-22-1.-rgl.png" alt="" width="90%" height="90%" />
 
 **Note 2: Analysis of Hotelling’s T-squared Using Multiple Components.**
 
@@ -310,10 +334,10 @@ df <- ellipseParam(pca_scores, threshold = 0.95)
 str(df)
 #> List of 4
 #>  $ Tsquare     : tibble [100 × 1] (S3: tbl_df/tbl/data.frame)
-#>   ..$ value: num [1:100] 6.53 0.78 0.399 1.276 0.636 ...
+#>   ..$ value: num [1:100] 26.94 3.22 1.64 5.26 2.62 ...
 #>  $ cutoff.99pct: num 14.5
 #>  $ cutoff.95pct: num 10.2
-#>  $ nb.comp     : num 4
+#>  $ nb.comp     : int 4
 ```
 
 ``` r
@@ -323,19 +347,14 @@ tibble(
   ) %>%
   ggplot() +
   geom_point(aes(x = obs, y = T2, fill = T2), shape = 21, size = 3, color = "black") +
-  geom_segment(aes(x = obs, y = T2, xend = obs, yend = 0), size = .5) +
+  geom_segment(aes(x = obs, y = T2, xend = obs, yend = 0), linewidth = .5) +
   scale_fill_gradient(low = "black", high = "red", guide = "none") +
   geom_hline(yintercept = pluck(df, "cutoff.99pct"), linetype = "dashed", color = "darkred", linewidth = .5) +
   geom_hline(yintercept = pluck(df, "cutoff.95pct"), linetype = "dashed", color = "darkblue", linewidth = .5) +
-  annotate("text", x = 80, y = 13, label = "99% limit", color = "darkred") +
-  annotate("text", x = 80, y = 9, label = "95% limit", color = "darkblue") +
+  annotate("text", x = 80, y = pluck(df, "cutoff.99pct") + 1, label = "99% limit", color = "darkred") +
+  annotate("text", x = 80, y = pluck(df, "cutoff.95pct") + 1, label = "95% limit", color = "darkblue") +
   labs(x = "Observations", y = "Hotelling’s T-squared (4 PCs)", fill = "T2 stats", caption = "Figure 4: Hotelling’s T-squared vs. Observations") +
   theme_bw()
-#> Warning: Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0.
-#> ℹ Please use `linewidth` instead.
-#> This warning is displayed once every 8 hours.
-#> Call `lifecycle::last_lifecycle_warnings()` to see where this warning was
-#> generated.
 ```
 
-<img src="man/figures/README-unnamed-chunk-24-1.png" width="90%" height="90%" />
+<img src="man/figures/README-unnamed-chunk-25-1.png" alt="" width="90%" height="90%" />
